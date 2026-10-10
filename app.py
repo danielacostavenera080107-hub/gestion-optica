@@ -245,3 +245,47 @@ with col1:
             st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
             
             c_btn1, c_btn2 = st.columns(2)
+            with c_btn1:
+                if st.button("✅ Entregar", key=f"ent_{row['ID']}", use_container_width=True):
+                    st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
+                    st.rerun()
+            with c_btn2:
+                if st.button("🗑️ Borrar", key=f"del_{row['ID']}", use_container_width=True):
+                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
+                    st.rerun()
+
+with col2:
+    st.markdown("### ⚠️ Pasados de Fecha")
+    atrasados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pasados de Fecha"]
+    if atrasados.empty:
+        st.info("No hay pedidos atrasados.")
+    for idx, row in atrasados.iterrows():
+        with st.expander(f"⚠️ {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})", expanded=True):
+            st.error(f"📅 **Vencido Est:** {row['Fecha Entrega Estimada']}")
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            c_btn1, c_btn2 = st.columns(2)
+            with c_btn1:
+                if st.button("✅ Entregar", key=f"ent_atrasado_{row['ID']}", use_container_width=True):
+                    st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
+                    st.rerun()
+            with c_btn2:
+                if st.button("🗑️ Borrar", key=f"del_atrasado_{row['ID']}", use_container_width=True):
+                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
+                    st.rerun()
+
+with col3:
+    st.markdown("### ✅ Entregados")
+    entregados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Entregados"]
+    if entregados.empty:
+        st.info("No hay pedidos entregados.")
+    for idx, row in entregados.iterrows():
+        with st.expander(f"📦 {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
+            st.success(f"📅 **Entregado el:** {row['Fecha Entrega Estimada']}")
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            if st.button("🗑️ Borrar", key=f"del_entregado_{row['ID']}", use_container_width=True):
+                st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
+                st.rerun()
