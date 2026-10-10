@@ -175,13 +175,4 @@ with col_cal:
     cal = calendar.monthcalendar(now.year, now.month)
     month_name = meses_es[now.month]
     
-    fechas_pendientes = st.session_state.pedidos[
-        st.session_state.pedidos["Estado"].isin(["Pendiente por Entregar", "Pasados de Fecha"])
-    ]["Fecha Entrega Estimada"].tolist()
-    
-    html_cal = f"""
-    <div style="background-color: #ffffff; padding: 20px; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); font-family: 'Plus Jakarta Sans', sans-serif;">
-        <div style="font-weight: 700; text-align: center; margin-bottom: 12px; color: #0f172a; font-size: 15px;">📅 Calendario Activo — {month_name}</div>
-        <table style="width: 100%; text-align: center; border-collapse: collapse;">
-            <tr style="color: #94a3b8; font-size: 11px; font-weight: 700;">
-                <th
+    fechas_pendientes =
