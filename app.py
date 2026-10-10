@@ -355,4 +355,39 @@ with col1:
 with col2:
     st.markdown("<h3 style='color: #ef4444; font-size: 16px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 10px; border-radius: 8px;'>⚠️ Atrasados</h3>", unsafe_allow_html=True)
     atrasados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pasados de Fecha"]
-    if atrasados.
+    if atrasados.empty:
+        st.info("No hay atrasados.")
+    for idx, row in atrasados.iterrows():
+        with st.expander(f"⚠️ {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
+            st.error(f"📅 **Vencido Est:** {row['Fecha Entrega Estimada']}")
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            c_b1, c_b2, c_b3 = st.columns(3)
+            with c_b1:
+                if st.button("✅", key=f"ent_at_{row['ID']}", help="Entregar"):
+                    st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
+                    st.rerun()
+            with c_b2:
+                if st.button("🛡️", key=f"gar_at_{row['ID']}", help="Enviar a Garantía"):
+                    st.session_state.pedidos.at[idx, "Estado"] = "En Garantía"
+                    st.rerun()
+            with c_b3:
+                if st.button("🗑️", key=f"del_at_{row['ID']}", help="Borrar"):
+                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
+                    st.rerun()
+
+with col3:
+    st.markdown("<h3 style='color: #10b981; font-size: 16px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 10px; border-radius: 8px;'>✅ Entregados</h3>", unsafe_allow_html=True)
+    entregados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Entregados"]
+    if entregados.empty:
+        st.info("No hay entregados.")
+    for idx, row in entregados.iterrows():
+        with st.expander(f"📦 {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
+            st.success(f"📅 **Entregado el:** {row['Fecha Entrega Estimada']}")
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            c_b1, c_b2 = st.columns(2)
+            with c_b1:
+                if st.button("🛡️", key=f"gar_ent_{row['ID']}", help="Enviar a Garantía", use_container_width=
