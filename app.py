@@ -8,7 +8,7 @@ import streamlit.components.v1 as components
 # Configuración de la página
 st.set_page_config(layout="wide", page_title="Sistema de Gestión — LENS VISION")
 
-# Estilos CSS avanzados con contraste total optimizado para los expanders y textos
+# Estilos CSS avanzados con contraste total y opacidad corregida en listas
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -62,24 +62,25 @@ st.markdown("""
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
 
-    /* Corrección absoluta para los Expanders (Listas desplegables de pedidos) */
+    /* Corrección total para los Expanders (Listas desplegables de pedidos) */
     [data-testid="stExpander"] {
-        background-color: rgba(255, 255, 255, 0.95) !important;
+        background-color: rgba(255, 255, 255, 0.98) !important;
         border-radius: 12px !important;
-        border: 1px solid rgba(255, 255, 255, 0.3) !important;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
-        margin-bottom: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
+        margin-bottom: 12px;
     }
     
-    /* Texto del encabezado del expander nítido y oscuro */
+    /* Textos del encabezado del expander oscuros y nítidos */
     [data-testid="stExpander"] summary p, [data-testid="stExpander"] summary span {
         color: #0f172a !important;
         font-weight: 700 !important;
     }
 
-    /* Textos internos dentro del expander (Asesora, Compra, etc.) */
-    [data-testid="stExpander"] div[data-testid="stVerticalBlock"] p {
-        color: #1e293b !important;
+    /* Textos internos dentro del expander */
+    [data-testid="stExpander"] div[data-testid="stVerticalBlock"] p, 
+    [data-testid="stExpander"] div[data-testid="stVerticalBlock"] span {
+        color: #0f172a !important;
         font-weight: 600 !important;
     }
     </style>
@@ -237,4 +238,112 @@ st.markdown("<br>", unsafe_allow_html=True)
 logo_svg_grande = """
 <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 22px 15px; border-radius: 16px; text-align: center; margin-bottom: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.15);">
     <svg width="80" height="45" viewBox="0 0 100 60" style="margin-bottom: 8px;">
-        <circle cx="30" cy="30" r="
+        <circle cx="30" cy="30" r="20" fill="none" stroke="#38bdf8" stroke-width="6"/>
+        <circle cx="70" cy="30" r="20" fill="none" stroke="#38bdf8" stroke-width="6"/>
+        <line x1="50" y1="30" x2="50" y2="20" stroke="#38bdf8" stroke-width="6"/>
+        <circle cx="50" cy="30" r="4" fill="#10b981"/>
+    </svg>
+    <div style="color: white; font-weight: 800; font-size: 20px; letter-spacing: 1.5px; font-family: 'Plus Jakarta Sans', sans-serif;">LENS VISION</div>
+    <div style="color: #94a3b8; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin-top: 2px;">Optica & Gestión</div>
+</div>
+"""
+
+with st.sidebar:
+    st.markdown(logo_svg_grande, unsafe_allow_html=True)
+    
+    st.markdown("<h2 style='font-size: 18px; font-weight: 700; color: #0f172a;'>📝 Registrar Nuevo Pedido</h2>", unsafe_allow_html=True)
+    with st.form("nuevo_pedido", clear_on_submit=True):
+        nombre = st.text_input("Nombre")
+        apellido = st.text_input("Apellido")
+        cedula = st.text_input("Número de Cédula")
+        asesora = st.text_input("Asesora Responsable")
+        dias_espera = st.number_input("Plazo de Entrega (Días Hábiles)", min_value=1, value=5)
+        
+        btn_registrar = st.form_submit_button("Registrar Pedido", use_container_width=True)
+        
+        if btn_registrar and nombre and cedula:
+            fecha_compra = datetime.now()
+            fecha_entrega = sumar_dias_habiles(fecha_compra, int(dias_espera))
+            
+            nuevo_id = int(st.session_state.pedidos["ID"].max() + 1) if not st.session_state.pedidos.empty else 1
+            nuevo_dict = {
+                "ID": nuevo_id, "Nombre": nombre, "Apellido": apellido, "Cédula": cedula,
+                "Asesora": asesora if asesora else "No asignada",
+                "Fecha Compra": fecha_compra.strftime("%Y-%m-%d"),
+                "Fecha Entrega Estimada": fecha_entrega.strftime("%Y-%m-%d"),
+                "Estado": "Pendiente por Entregar"
+            }
+            st.session_state.pedidos = pd.concat([st.session_state.pedidos, pd.DataFrame([nuevo_dict])], ignore_index=True)
+            enviar_alerta("Pedido Registrado", f"Pedido para {nombre} {apellido} registrado con éxito.")
+            st.rerun()
+
+# Verificación automática de estados
+hoy_str = datetime.now().strftime("%Y-%m-%d")
+
+for index, row in st.session_state.pedidos.iterrows():
+    if row["Estado"] == "Pendiente por Entregar":
+        fecha_entrega = datetime.strptime(row["Fecha Entrega Estimada"], "%Y-%m-%d")
+        fecha_actual = datetime.strptime(hoy_str, "%Y-%m-%d")
+        if fecha_entrega < fecha_actual:
+            st.session_state.pedidos.at[index, "Estado"] = "Pasados de Fecha"
+            enviar_alerta("Pedido Retrasado", f"El pedido de {row['Nombre']} {row['Apellido']} está pasado de la fecha de entrega.")
+
+# Listado de pedidos organizados en 3 columnas principales
+col1, col2, col3 = st.columns(3, gap="medium")
+
+with col1:
+    st.markdown("<h3 style='color: #f59e0b; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 12px; border-radius: 8px;'>⏳ Pendientes por Entregar</h3>", unsafe_allow_html=True)
+    pendientes = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pendiente por Entregar"]
+    if pendientes.empty:
+        st.info("No hay pedidos pendientes.")
+    for idx, row in pendientes.iterrows():
+        with st.expander(f"👓 {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
+            st.warning(f"📅 **Entrega Est:** {row['Fecha Entrega Estimada']}")
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            c_btn1, c_btn2 = st.columns(2)
+            with c_btn1:
+                if st.button("✅ Entregar", key=f"ent_{row['ID']}", use_container_width=True):
+                    st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
+                    st.rerun()
+            with c_btn2:
+                if st.button("🗑️ Borrar", key=f"del_{row['ID']}", use_container_width=True):
+                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
+                    st.rerun()
+
+with col2:
+    st.markdown("<h3 style='color: #ef4444; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 12px; border-radius: 8px;'>⚠️ Pasados de Fecha</h3>", unsafe_allow_html=True)
+    atrasados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pasados de Fecha"]
+    if atrasados.empty:
+        st.info("No hay pedidos atrasados.")
+    for idx, row in atrasados.iterrows():
+        with st.expander(f"⚠️ {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})", expanded=True):
+            st.error(f"📅 **Vencido Est:** {row['Fecha Entrega Estimada']}")
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            c_btn1, c_btn2 = st.columns(2)
+            with c_btn1:
+                if st.button("✅ Entregar", key=f"ent_atrasado_{row['ID']}", use_container_width=True):
+                    st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
+                    st.rerun()
+            with c_btn2:
+                if st.button("🗑️ Borrar", key=f"del_atrasado_{row['ID']}", use_container_width=True):
+                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
+                    st.rerun()
+
+with col3:
+    st.markdown("<h3 style='color: #10b981; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 12px; border-radius: 8px;'>✅ Entregados</h3>", unsafe_allow_html=True)
+    entregados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Entregados"]
+    if entregados.empty:
+        st.info("No hay pedidos entregados.")
+    for idx, row in entregados.iterrows():
+        with st.expander(f"📦 {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
+            st.success(f"📅 **Entregado el:** {row['Fecha Entrega Estimada']}")
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            if st.button("🗑️ Borrar", key=f"del_entregado_{row['ID']}", use_container_width=True):
+                st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
+                st.rerun()
