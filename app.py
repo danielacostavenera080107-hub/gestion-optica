@@ -183,4 +183,3 @@ with col1:
             """, unsafe_allow_html=True
         )
         with st.expander("📌 Ver Detalles y Acciones"):
-            st.
