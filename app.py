@@ -390,4 +390,31 @@ with col3:
             
             c_b1, c_b2 = st.columns(2)
             with c_b1:
-                if st.button("🛡️", key=f"gar_ent_{row['ID']}", help="Enviar a Garantía", use_container_width=
+                if st.button("🛡️", key=f"gar_ent_{row['ID']}", help="Enviar a Garantía", use_container_width=True):
+                    st.session_state.pedidos.at[idx, "Estado"] = "En Garantía"
+                    st.rerun()
+            with c_b2:
+                if st.button("🗑️", key=f"del_ent_{row['ID']}", help="Borrar", use_container_width=True):
+                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
+                    st.rerun()
+
+with col4:
+    st.markdown("<h3 style='color: #8b5cf6; font-size: 16px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 10px; border-radius: 8px;'>🛡️ En Garantía</h3>", unsafe_allow_html=True)
+    garantias = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "En Garantía"]
+    if garantias.empty:
+        st.info("No hay garantías.")
+    for idx, row in garantias.iterrows():
+        with st.expander(f"🛡️ {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
+            st.markdown("<div style='background-color: #ede9fe; padding: 6px; border-radius: 6px; text-align: center; font-weight: 700; color: #6d28d9; font-size: 11px; margin-bottom: 8px;'>⚠️ En Proceso de Garantía</div>", unsafe_allow_html=True)
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            c_b1, c_b2 = st.columns(2)
+            with c_b1:
+                if st.button("✅", key=f"res_gar_{row['ID']}", help="Resolver / Entregar", use_container_width=True):
+                    st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
+                    st.rerun()
+            with c_b2:
+                if st.button("🗑️", key=f"del_gar_{row['ID']}", help="Borrar", use_container_width=True):
+                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
+                    st.rerun()
