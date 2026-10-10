@@ -8,7 +8,7 @@ import streamlit.components.v1 as components
 # Configuración de la página
 st.set_page_config(layout="wide", page_title="Sistema de Gestión — LENS VISION")
 
-# Estilos CSS avanzados con contraste total, botones corregidos y 4 columnas
+# Estilos CSS avanzados con contraste total y 4 columnas
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -125,7 +125,7 @@ if 'pedidos' not in st.session_state:
     p3 = {
         "ID": 3, "Nombre": "Ana", "Apellido": "Rodríguez", "Cédula": "11223344",
         "Asesora": "Laura Gómez", "Fecha Compra": (datetime.now() - timedelta(days=10)).strftime("%Y-%m-%d"),
-        "Fecha Entrega Estimada": (datetime.now() - timedelta(days=5)).strftime("%Y-%m-%d"),
+        "Fecha Entrega Estimada": datetime.now().strftime("%Y-%m-%d"),
         "Estado": "Entregados"
     }
     p4 = {
@@ -189,16 +189,29 @@ col_title, col_cal = st.columns([1.6, 1.4], gap="large")
 
 with col_title:
     st.markdown("<h1 style='color: #ffffff; font-size: 30px; font-weight: 800; margin-bottom: 0px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);'>Órdenes de Lentes 👓</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #e2e8f0; font-size: 14px; margin-top: 4px; margin-bottom: 24px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);'>Supervisa eficientemente las entregas, plazos en días hábiles, ventas totales y garantías.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #e2e8f0; font-size: 14px; margin-top: 4px; margin-bottom: 24px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);'>Supervisa eficientemente las entregas, plazos en días hábiles, ventas mensuales y garantías.</p>", unsafe_allow_html=True)
     
     df_p = st.session_state.pedidos
     total_pendientes = len(df_p[df_p["Estado"] == "Pendiente por Entregar"])
     total_atrasados = len(df_p[df_p["Estado"] == "Pasados de Fecha"])
     total_entregados = len(df_p[df_p["Estado"] == "Entregados"])
     total_garantias = len(df_p[df_p["Estado"] == "En Garantía"])
-    total_vendidos = len(df_p) # Total histórico o general de lentes gestionados/vendidos
     
-    # 5 Métricas KPIs Organizadas (Pendientes, Atrasados, Entregados, Garantías y Vendidos Totales)
+    # Cálculo dinámico de lentes vendidos y entregados en el MES y AÑO seleccionados en el calendario
+    c_y = st.session_state.cal_year
+    c_m = st.session_state.cal_month
+    
+    def es_del_mes_seleccionado(fecha_str):
+        try:
+            f_obj = datetime.strptime(fecha_str, "%Y-%m-%d")
+            return f_obj.year == c_y and f_obj.month == c_m
+        except Exception:
+            return False
+
+    df_entregados = df_p[df_p["Estado"] == "Entregados"]
+    total_vendidos_mes = len(df_entregados[df_entregados["Fecha Entrega Estimada"].apply(es_del_mes_seleccionado)])
+    
+    # 5 Métricas KPIs Organizadas
     kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
     with kpi1:
         st.markdown(f'<div class="metric-container"><span style="color: #f59e0b; font-size: 20px; font-weight: 800;">{total_pendientes}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">PENDIENTES</span></div>', unsafe_allow_html=True)
@@ -209,7 +222,7 @@ with col_title:
     with kpi4:
         st.markdown(f'<div class="metric-container"><span style="color: #8b5cf6; font-size: 20px; font-weight: 800;">{total_garantias}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">GARANTÍAS</span></div>', unsafe_allow_html=True)
     with kpi5:
-        st.markdown(f'<div class="metric-container"><span style="color: #0ea5e9; font-size: 20px; font-weight: 800;">{total_vendidos}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">TOTAL VENDIDOS</span></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-container"><span style="color: #0ea5e9; font-size: 20px; font-weight: 800;">{total_vendidos_mes}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">VENDIDOS (MES)</span></div>', unsafe_allow_html=True)
 
 with col_cal:
     c_ant, c_sig = st.columns([1, 1])
@@ -231,8 +244,6 @@ with col_cal:
             st.rerun()
 
     meses_es = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
-    c_y = st.session_state.cal_year
-    c_m = st.session_state.cal_month
     month_name = meses_es[c_m]
     
     cal = calendar.monthcalendar(c_y, c_m)
@@ -313,7 +324,7 @@ for index, row in st.session_state.pedidos.iterrows():
             st.session_state.pedidos.at[index, "Estado"] = "Pasados de Fecha"
             enviar_alerta("Pedido Retrasado", f"El pedido de {row['Nombre']} {row['Apellido']} está pasado de la fecha de entrega.")
 
-# Listado de pedidos organizado en 4 columnas principales (Pendientes, Atrasados, Entregados, Garantías)
+# Listado de pedidos organizado en 4 columnas principales
 col1, col2, col3, col4 = st.columns(4, gap="medium")
 
 with col1:
@@ -347,63 +358,4 @@ with col2:
     if atrasados.empty:
         st.info("No hay atrasados.")
     for idx, row in atrasados.iterrows():
-        with st.expander(f"⚠️ {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
-            st.error(f"📅 **Vencido Est:** {row['Fecha Entrega Estimada']}")
-            st.write(f"👤 **Asesora:** {row['Asesora']}")
-            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
-            
-            c_b1, c_b2, c_b3 = st.columns(3)
-            with c_b1:
-                if st.button("✅", key=f"ent_at_{row['ID']}", help="Entregar"):
-                    st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
-                    st.rerun()
-            with c_b2:
-                if st.button("🛡️", key=f"gar_at_{row['ID']}", help="Enviar a Garantía"):
-                    st.session_state.pedidos.at[idx, "Estado"] = "En Garantía"
-                    st.rerun()
-            with c_b3:
-                if st.button("🗑️", key=f"del_at_{row['ID']}", help="Borrar"):
-                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
-                    st.rerun()
-
-with col3:
-    st.markdown("<h3 style='color: #10b981; font-size: 16px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 10px; border-radius: 8px;'>✅ Entregados</h3>", unsafe_allow_html=True)
-    entregados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Entregados"]
-    if entregados.empty:
-        st.info("No hay entregados.")
-    for idx, row in entregados.iterrows():
-        with st.expander(f"📦 {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
-            st.success(f"📅 **Entregado el:** {row['Fecha Entrega Estimada']}")
-            st.write(f"👤 **Asesora:** {row['Asesora']}")
-            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
-            
-            c_b1, c_b2 = st.columns(2)
-            with c_b1:
-                if st.button("🛡️", key=f"gar_ent_{row['ID']}", help="Enviar a Garantía", use_container_width=True):
-                    st.session_state.pedidos.at[idx, "Estado"] = "En Garantía"
-                    st.rerun()
-            with c_b2:
-                if st.button("🗑️", key=f"del_ent_{row['ID']}", help="Borrar", use_container_width=True):
-                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
-                    st.rerun()
-
-with col4:
-    st.markdown("<h3 style='color: #8b5cf6; font-size: 16px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 10px; border-radius: 8px;'>🛡️ En Garantía</h3>", unsafe_allow_html=True)
-    garantias = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "En Garantía"]
-    if garantias.empty:
-        st.info("No hay garantías.")
-    for idx, row in garantias.iterrows():
-        with st.expander(f"🛡️ {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
-            st.markdown(f"<div style='background-color: #ede9fe; padding: 6px; border-radius: 6px; text-align: center; font-weight: 700; color: #6d28d9; font-size: 11px; margin-bottom: 8px;'>⚠️ En Proceso de Garantía</div>", unsafe_allow_html=True)
-            st.write(f"👤 **Asesora:** {row['Asesora']}")
-            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
-            
-            c_b1, c_b2 = st.columns(2)
-            with c_b1:
-                if st.button("✅", key=f"res_gar_{row['ID']}", help="Resolver / Entregar", use_container_width=True):
-                    st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
-                    st.rerun()
-            with c_b2:
-                if st.button("🗑️", key=f"del_gar_{row['ID']}", help="Borrar", use_container_width=True):
-                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
-                    st.rerun()
+        with st.expander(f"⚠️ {row['Nombre']} {row['Apellido']} (Cédula
