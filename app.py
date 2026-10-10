@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from plyer import notification
 import calendar
+import streamlit.components.v1 as components
 
 # Configuración de la página
 st.set_page_config(layout="wide", page_title="Sistema de Gestión — LENS VISION")
@@ -28,6 +29,18 @@ st.markdown("""
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
 
+    .hero-banner {
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+        padding: 20px 30px;
+        border-radius: 16px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 25px;
+    }
     .metric-container {
         background: rgba(255, 255, 255, 0.95);
         padding: 16px;
@@ -117,20 +130,48 @@ if 'cal_year' not in st.session_state:
 if 'cal_month' not in st.session_state:
     st.session_state.cal_month = datetime.now().month
 
-# Función para notificaciones nativas
+# Función para notificaciones
 def enviar_alerta(titulo, mensaje):
     try:
         notification.notify(title=titulo, message=mensaje, app_name="LENS VISION", timeout=10)
     except Exception:
         pass
 
-# --- BARRA SUPERIOR NATIVA ---
-st.markdown("""
-<div style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%); padding: 18px 25px; border-radius: 14px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 25px;">
-    <span style="font-weight: 700; font-size: 16px;">⚡ LENS VISION — Panel Ejecutivo de Control Óptico</span>
-    <span style="font-size: 13px; font-weight: 600; background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px;">📅 Gestión y Trazabilidad</span>
+# --- BARRA SUPERIOR CON RELOJ EN TIEMPO REAL ---
+reloj_html = """
+<div style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%); padding: 20px 30px; border-radius: 16px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 25px; font-family: 'Plus Jakarta Sans', sans-serif;">
+    <div><span style="font-weight: 700; font-size: 16px;">⚡ LENS VISION — Panel Ejecutivo de Control Óptico</span></div>
+    <div id="reloj-vivo" style="font-size: 13px; font-weight: 500; background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px;">🕒 Cargando reloj...</div>
 </div>
-""", unsafe_allow_html=True)
+
+<script>
+function actualizarReloj() {
+    const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const meses = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    
+    const now = new Date();
+    const diaSemana = dias[now.getDay()];
+    const diaMes = now.getDate();
+    const mes = meses[now.getMonth() + 1];
+    const anio = now.getFullYear();
+    
+    let horas = now.getHours();
+    const minutos = String(now.getMinutes()).padStart(2, '0');
+    const segundos = String(now.getSeconds()).padStart(2, '0');
+    const ampm = horas >= 12 ? 'PM' : 'AM';
+    
+    horas = horas % 12;
+    horas = horas ? horas : 12;
+    const horaStr = String(horas).padStart(2, '0');
+    
+    const formatoFinal = `🕒 ${diaSemana}, ${diaMes} de ${mes} de ${anio} — ${horaStr}:${minutos}:${segundos} ${ampm}`;
+    document.getElementById('reloj-vivo').innerText = formatoFinal;
+}
+setInterval(actualizarReloj, 1000);
+actualizarReloj();
+</script>
+"""
+components.html(reloj_html, height=90)
 
 # Variables de Mes y Año seleccionados en el calendario
 c_y = st.session_state.cal_year
@@ -141,10 +182,8 @@ periodo_actual_str = f"{c_y}-{c_m:02d}"
 col_title, col_cal = st.columns([1.6, 1.4], gap="large")
 
 with col_title:
-    st.markdown("<h1 style='color: #ffffff; font-size: 28px; font-weight: 800; margin-bottom: 0px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);'>Órdenes de Lentes 👓</h1>", unsafe_allow_html=True)
-    meses_es = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
-    month_name = meses_es[c_m]
-    st.markdown(f"<p style='color: #e2e8f0; font-size: 14px; margin-top: 4px; margin-bottom: 24px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);'>Viendo registros independientes del periodo: <b>{month_name} {c_y}</b></p>", unsafe_allow_html=True)
+    st.markdown("<h1 style='color: #ffffff; font-size: 30px; font-weight: 800; margin-bottom: 0px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);'>Órdenes de Lentes 👓</h1>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color: #e2e8f0; font-size: 14px; margin-top: 4px; margin-bottom: 24px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);'>Viendo registros independientes del periodo: <b>{calendar.month_name[c_m]} {c_y}</b></p>", unsafe_allow_html=True)
     
     df_p = st.session_state.pedidos
     
@@ -160,4 +199,26 @@ with col_title:
     # 5 Métricas KPIs Organizadas
     kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
     with kpi1:
-        st.markdown(f'<div class="metric-container"><span style="color: #f59e0b; font-size: 18px; font-weight: 800;">{total_pendientes}</span><br><span style="color: #64748b; font-size: 9px; font-weight: 700;">PENDIENTES</span></div>
+        st.markdown(f'<div class="metric-container"><span style="color: #f59e0b; font-size: 20px; font-weight: 800;">{total_pendientes}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">PENDIENTES</span></div>', unsafe_allow_html=True)
+    with kpi2:
+        st.markdown(f'<div class="metric-container"><span style="color: #ef4444; font-size: 20px; font-weight: 800;">{total_atrasados}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">ATRASADOS</span></div>', unsafe_allow_html=True)
+    with kpi3:
+        st.markdown(f'<div class="metric-container"><span style="color: #10b981; font-size: 20px; font-weight: 800;">{total_entregados}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">ENTREGADOS</span></div>', unsafe_allow_html=True)
+    with kpi4:
+        st.markdown(f'<div class="metric-container"><span style="color: #8b5cf6; font-size: 20px; font-weight: 800;">{total_garantias}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">GARANTÍAS</span></div>', unsafe_allow_html=True)
+    with kpi5:
+        st.markdown(f'<div class="metric-container"><span style="color: #0ea5e9; font-size: 20px; font-weight: 800;">{total_vendidos_mes}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">VENDIDOS (MES)</span></div>', unsafe_allow_html=True)
+
+with col_cal:
+    c_ant, c_sig = st.columns(2)
+    with c_ant:
+        if st.button("◀ Mes Anterior", use_container_width=True, key="prev_month"):
+            if st.session_state.cal_month == 1:
+                st.session_state.cal_month = 12
+                st.session_state.cal_year -= 1
+            else:
+                st.session_state.cal_month -= 1
+            st.rerun()
+    with c_sig:
+        if st.button("Mes Siguiente ▶", use_container_width=True, key="next_month"):
+            if st.session_state.cal
