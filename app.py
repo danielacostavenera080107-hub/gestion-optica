@@ -192,33 +192,4 @@ with col_title:
     
     total_pendientes = len(df_mes[df_mes["Estado"] == "Pendiente por Entregar"]) if not df_mes.empty else 0
     total_atrasados = len(df_mes[df_mes["Estado"] == "Pasados de Fecha"]) if not df_mes.empty else 0
-    total_entregados = len(df_mes[df_mes["Estado"] == "Entregados"]) if not df_mes.empty else 0
-    total_garantias = len(df_mes[df_mes["Estado"] == "En Garantía"]) if not df_mes.empty else 0
-    total_vendidos_mes = total_entregados  # Cuenta los entregados exclusivamente de este mes
-    
-    # 5 Métricas KPIs Organizadas
-    kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
-    with kpi1:
-        st.markdown(f'<div class="metric-container"><span style="color: #f59e0b; font-size: 20px; font-weight: 800;">{total_pendientes}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">PENDIENTES</span></div>', unsafe_allow_html=True)
-    with kpi2:
-        st.markdown(f'<div class="metric-container"><span style="color: #ef4444; font-size: 20px; font-weight: 800;">{total_atrasados}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">ATRASADOS</span></div>', unsafe_allow_html=True)
-    with kpi3:
-        st.markdown(f'<div class="metric-container"><span style="color: #10b981; font-size: 20px; font-weight: 800;">{total_entregados}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">ENTREGADOS</span></div>', unsafe_allow_html=True)
-    with kpi4:
-        st.markdown(f'<div class="metric-container"><span style="color: #8b5cf6; font-size: 20px; font-weight: 800;">{total_garantias}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">GARANTÍAS</span></div>', unsafe_allow_html=True)
-    with kpi5:
-        st.markdown(f'<div class="metric-container"><span style="color: #0ea5e9; font-size: 20px; font-weight: 800;">{total_vendidos_mes}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">VENDIDOS (MES)</span></div>', unsafe_allow_html=True)
-
-with col_cal:
-    c_ant, c_sig = st.columns(2)
-    with c_ant:
-        if st.button("◀ Mes Anterior", use_container_width=True, key="prev_month"):
-            if st.session_state.cal_month == 1:
-                st.session_state.cal_month = 12
-                st.session_state.cal_year -= 1
-            else:
-                st.session_state.cal_month -= 1
-            st.rerun()
-    with c_sig:
-        if st.button("Mes Siguiente ▶", use_container_width=True, key="next_month"):
-            if st.session_state.cal
+    total_entregados = len(
