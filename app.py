@@ -197,7 +197,7 @@ with col_title:
     total_entregados = len(df_p[df_p["Estado"] == "Entregados"])
     total_garantias = len(df_p[df_p["Estado"] == "En Garantía"])
     
-    # Cálculo dinámico de lentes vendidos y entregados en el MES y AÑO seleccionados en el calendario
+    # Cálculo dinámico de lentes vendidos y entregados en el MES y AÑO seleccionados
     c_y = st.session_state.cal_year
     c_m = st.session_state.cal_month
     
@@ -355,7 +355,4 @@ with col1:
 with col2:
     st.markdown("<h3 style='color: #ef4444; font-size: 16px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 10px; border-radius: 8px;'>⚠️ Atrasados</h3>", unsafe_allow_html=True)
     atrasados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pasados de Fecha"]
-    if atrasados.empty:
-        st.info("No hay atrasados.")
-    for idx, row in atrasados.iterrows():
-        with st.expander(f"⚠️ {row['Nombre']} {row['Apellido']} (Cédula
+    if atrasados.
