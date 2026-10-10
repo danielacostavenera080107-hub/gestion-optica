@@ -6,7 +6,7 @@ import calendar
 import streamlit.components.v1 as components
 
 # Configuración de la página
-st.set_page_config(layout="wide", page_title="Sistema de Gestión — Óptica")
+st.set_page_config(layout="wide", page_title="Sistema de Gestión — LENS VISION")
 
 # Estilos CSS generales limpios
 st.markdown("""
@@ -78,14 +78,14 @@ if 'pedidos' not in st.session_state:
 # Función para notificaciones
 def enviar_alerta(titulo, mensaje):
     try:
-        notification.notify(title=titulo, message=mensaje, app_name="Gestión Óptica", timeout=10)
+        notification.notify(title=titulo, message=mensaje, app_name="LENS VISION", timeout=10)
     except Exception:
         pass
 
 # --- BARRA SUPERIOR CON RELOJ EN TIEMPO REAL (SEGUNDO A SEGUNDO) ---
 reloj_html = """
 <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 20px 30px; border-radius: 16px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15); margin-bottom: 25px; font-family: 'Plus Jakarta Sans', sans-serif;">
-    <div><span style="font-weight: 700; font-size: 16px;">⚡ Panel Ejecutivo de Control Óptico</span></div>
+    <div><span style="font-weight: 700; font-size: 16px;">⚡ LENS VISION — Panel Ejecutivo de Control Óptico</span></div>
     <div id="reloj-vivo" style="font-size: 13px; font-weight: 500; background: rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px;">🕒 Cargando reloj...</div>
 </div>
 
@@ -106,7 +106,7 @@ function actualizarReloj() {
     const ampm = horas >= 12 ? 'PM' : 'AM';
     
     horas = horas % 12;
-    horas = horas ? horas : 12; // La hora '0' debe ser '12'
+    horas = horas ? horas : 12;
     const horaStr = String(horas).padStart(2, '0');
     
     const formatoFinal = `🕒 ${diaSemana}, ${diaMes} de ${mes} de ${anio} — ${horaStr}:${minutos}:${segundos} ${ampm}`;
@@ -122,7 +122,7 @@ components.html(reloj_html, height=90)
 col_title, col_cal = st.columns([1.6, 1.4], gap="large")
 
 with col_title:
-    st.markdown("<h1 style='color: #0f172a; font-size: 30px; font-weight: 800; margin-bottom: 0px;'>Órdenes de Lentes</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='color: #0f172a; font-size: 30px; font-weight: 800; margin-bottom: 0px;'>Órdenes de Lentes 👓</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color: #64748b; font-size: 14px; margin-top: 4px; margin-bottom: 24px;'>Supervisa eficientemente las entregas, plazos en días hábiles y el rendimiento del personal.</p>", unsafe_allow_html=True)
     
     df_p = st.session_state.pedidos
@@ -167,8 +167,23 @@ with col_cal:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# Barra lateral estilizada para registro
+# Barra lateral estilizada con el logotipo vectorial de LENS VISION (Opción B)
+logo_svg = """
+<div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <svg width="50" height="30" viewBox="0 0 100 60" style="margin-bottom: 5px;">
+        <circle cx="30" cy="30" r="20" fill="none" stroke="#38bdf8" stroke-width="6"/>
+        <circle cx="70" cy="30" r="20" fill="none" stroke="#38bdf8" stroke-width="6"/>
+        <line x1="50" y1="30" x2="50" y2="20" stroke="#38bdf8" stroke-width="6"/>
+        <circle cx="50" cy="30" r="4" fill="#10b981"/>
+    </svg>
+    <div style="color: white; font-weight: 800; font-size: 16px; letter-spacing: 1px; font-family: 'Plus Jakarta Sans', sans-serif;">LENS VISION</div>
+    <div style="color: #94a3b8; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;">Optica & Gestión</div>
+</div>
+"""
+
 with st.sidebar:
+    st.markdown(logo_svg, unsafe_allow_html=True)
+    
     st.markdown("<h2 style='font-size: 18px; font-weight: 700; color: #0f172a;'>📝 Registrar Nuevo Pedido</h2>", unsafe_allow_html=True)
     with st.form("nuevo_pedido", clear_on_submit=True):
         nombre = st.text_input("Nombre")
@@ -206,7 +221,7 @@ for index, row in st.session_state.pedidos.iterrows():
             st.session_state.pedidos.at[index, "Estado"] = "Pasados de Fecha"
             enviar_alerta("Pedido Retrasado", f"El pedido de {row['Nombre']} {row['Apellido']} está pasado de la fecha de entrega.")
 
-# Listado de pedidos con componentes nativos estables y robustos
+# Listado de pedidos con componentes estables y robustos
 col1, col2, col3 = st.columns(3, gap="medium")
 
 with col1:
@@ -215,7 +230,7 @@ with col1:
     if pendientes.empty:
         st.info("No hay pedidos pendientes.")
     for idx, row in pendientes.iterrows():
-        with st.expander(f"{row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
+        with st.expander(f"👓 {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
             st.warning(f"📅 **Entrega Est:** {row['Fecha Entrega Estimada']}")
             st.write(f"👤 **Asesora:** {row['Asesora']}")
             st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
@@ -251,17 +266,4 @@ with col2:
                     st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
                     st.rerun()
 
-with col3:
-    st.markdown("### ✅ Entregados")
-    entregados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Entregados"]
-    if entregados.empty:
-        st.info("No hay pedidos entregados.")
-    for idx, row in entregados.iterrows():
-        with st.expander(f"{row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
-            st.success(f"📅 **Entregado el:** {row['Fecha Entrega Estimada']}")
-            st.write(f"👤 **Asesora:** {row['Asesora']}")
-            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
-            
-            if st.button("🗑️ Borrar", key=f"del_entregado_{row['ID']}", use_container_width=True):
-                st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
-                st.rerun()
+with col3
