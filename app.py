@@ -8,7 +8,7 @@ import streamlit.components.v1 as components
 # Configuración de la página
 st.set_page_config(layout="wide", page_title="Sistema de Gestión — LENS VISION")
 
-# Estilos CSS avanzados con fondo general y logotipo ampliado
+# Estilos CSS avanzados con fondo general reforzado y logotipo ampliado
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -17,10 +17,9 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif; 
     }
     
-    /* Fondo general sutil y elegante para toda la interfaz */
+    /* Fondo general reforzado para toda la aplicación */
     .stApp {
-        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-        background-attachment: fixed;
+        background-color: #f1f5f9 !important;
     }
 
     #MainMenu {visibility: hidden;}
@@ -176,7 +175,7 @@ with col_cal:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# Logotipo LENS VISION en tamaño grande y llamativo para la barra lateral
+# Logotipo LENS VISION grande para la barra lateral
 logo_svg_grande = """
 <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 22px 15px; border-radius: 16px; text-align: center; margin-bottom: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.15);">
     <svg width="80" height="45" viewBox="0 0 100 60" style="margin-bottom: 8px;">
@@ -230,7 +229,7 @@ for index, row in st.session_state.pedidos.iterrows():
             st.session_state.pedidos.at[index, "Estado"] = "Pasados de Fecha"
             enviar_alerta("Pedido Retrasado", f"El pedido de {row['Nombre']} {row['Apellido']} está pasado de la fecha de entrega.")
 
-# Listado de pedidos con componentes estables y robustos
+# Listado de pedidos organizados en 3 columnas principales con acciones restauradas
 col1, col2, col3 = st.columns(3, gap="medium")
 
 with col1:
