@@ -5,7 +5,57 @@ from plyer import notification
 import calendar
 
 # Configuración de la página (ancho completo)
-st.set_page_config(layout="wide", page_title="Gestión de Óptica")
+st.set_page_config(layout="wide", page_title="Gestión de Óptica Profesional")
+
+# Estilos CSS personalizados para mejorar el aspecto visual (eliminar aspecto plano)
+st.markdown("""
+    <style>
+    .main {
+        background-color: #f8f9fa;
+    }
+    .metric-card {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e3e6f0;
+        text-align: center;
+    }
+    .card-pendientes {
+        background: #ffffff;
+        padding: 14px;
+        border-radius: 10px;
+        border-left: 6px solid #f6c23e;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        margin-bottom: 12px;
+        border-top: 1px solid #eaecf4;
+        border-right: 1px solid #eaecf4;
+        border-bottom: 1px solid #eaecf4;
+    }
+    .card-atrasados {
+        background: #ffffff;
+        padding: 14px;
+        border-radius: 10px;
+        border-left: 6px solid #e74a3b;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        margin-bottom: 12px;
+        border-top: 1px solid #eaecf4;
+        border-right: 1px solid #eaecf4;
+        border-bottom: 1px solid #eaecf4;
+    }
+    .card-entregados {
+        background: #ffffff;
+        padding: 14px;
+        border-radius: 10px;
+        border-left: 6px solid #1cc88a;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        margin-bottom: 12px;
+        border-top: 1px solid #eaecf4;
+        border-right: 1px solid #eaecf4;
+        border-bottom: 1px solid #eaecf4;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # Función para sumar días hábiles (excluyendo fines de semana)
 def sumar_dias_habiles(fecha_inicio, dias_a_sumar):
@@ -59,7 +109,7 @@ def enviar_alerta(titulo, mensaje):
     except Exception:
         pass
 
-# --- BARRA SUPERIOR CON FECHA Y HORA EN TIEMPO REAL ---
+# --- BARRA SUPERIOR CON FECHA, HORA Y ESTILO ELEGANTE ---
 dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 meses_es = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
 
@@ -70,36 +120,47 @@ fecha_hora_formateada = f"{dia_sem_str}, {ahora.day} de {mes_str} de {ahora.year
 
 st.markdown(
     f"""
-    <div style="background-color: #eef2f7; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; font-family: sans-serif;">
-        <span style="font-weight: bold; color: #2c3e50; font-size: 14px;">🕒 Fecha y Hora Actual:</span>
-        <span style="color: #34495e; font-size: 14px; font-weight: 500;">{fecha_hora_formateada}</span>
+    <div style="background: linear-gradient(135deg, #4e73df 0%, #224abe 100%); padding: 12px 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <span style="font-weight: 600; font-size: 15px;">🚀 Panel de Control Óptica</span>
+        <span style="font-size: 14px; font-weight: 400;">🕒 {fecha_hora_formateada}</span>
     </div>
     """, unsafe_allow_html=True
 )
 
-# Encabezado superior dividido: Título a la izquierda, Calendario elegante a la derecha
-col_title, col_cal = st.columns([1.8, 1.2])
+# Encabezado principal y Calendario visual superior derecho
+col_title, col_cal = st.columns([1.7, 1.3])
 
 with col_title:
-    st.title("👓 Sistema de Gestión de Pedidos - Óptica")
-    st.markdown("Control de órdenes, asesoras y plazos de entrega hábiles.")
+    st.title("👓 Sistema de Gestión de Pedidos")
+    st.markdown("Administración avanzada de órdenes, control de plazos hábiles y seguimiento de asesoras.")
+    
+    # Métricas rápidas (KPIs) para dar vida al panel superior
+    total_pendientes = len(st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pendiente por Entregar"])
+    total_atrasados = len(st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pasados de Fecha"])
+    total_entregados = len(st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Entregados"])
+    
+    kpi1, kpi2, kpi3 = st.columns(3)
+    with kpi1:
+        st.markdown(f"""<div class="metric-card"><span style="color: #f6c23e; font-size: 20px; font-weight: bold;">{total_pendientes}</span><br><small style="color: #6e707e;">Pendientes</small></div>""", unsafe_allow_html=True)
+    with kpi2:
+        st.markdown(f"""<div class="metric-card"><span style="color: #e74a3b; font-size: 20px; font-weight: bold;">{total_atrasados}</span><br><small style="color: #6e707e;">Atrasados</small></div>""", unsafe_allow_html=True)
+    with kpi3:
+        st.markdown(f"""<div class="metric-card"><span style="color: #1cc88a; font-size: 20px; font-weight: bold;">{total_entregados}</span><br><small style="color: #6e707e;">Entregados</small></div>""", unsafe_allow_html=True)
 
 with col_cal:
     now = datetime.now()
     cal = calendar.monthcalendar(now.year, now.month)
     month_name = meses_es[now.month]
     
-    # Extraer fechas con entregas pendientes o atrasadas
     fechas_pendientes = st.session_state.pedidos[
         st.session_state.pedidos["Estado"].isin(["Pendiente por Entregar", "Pasados de Fecha"])
     ]["Fecha Entrega Estimada"].tolist()
     
-    # Renderizar calendario visual con HTML/CSS estilizado arriba a la derecha
     html_cal = f"""
-    <div style="background-color: #ffffff; padding: 10px; border-radius: 10px; border: 1px solid #e0e0e0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-family: sans-serif; font-size: 13px;">
-        <div style="font-weight: bold; text-align: center; margin-bottom: 6px; color: #2c3e50;">📅 {month_name} {now.year}</div>
+    <div style="background-color: #ffffff; padding: 14px; border-radius: 12px; border: 1px solid #e3e6f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-family: sans-serif; font-size: 13px;">
+        <div style="font-weight: bold; text-align: center; margin-bottom: 8px; color: #4e73df; font-size: 14px;">📅 Calendario de Entregas — {month_name}</div>
         <table style="width: 100%; text-align: center; border-collapse: collapse;">
-            <tr style="color: #7f8c8d; font-size: 11px;">
+            <tr style="color: #b7b9cc; font-size: 11px; font-weight: bold;">
                 <th>Lu</th><th>Ma</th><th>Mi</th><th>Ju</th><th>Vi</th><th>Sá</th><th>Do</th>
             </tr>
     """
@@ -107,14 +168,14 @@ with col_cal:
         html_cal += "<tr>"
         for day in week:
             if day == 0:
-                html_cal += "<td style='padding: 3px;'></td>"
+                html_cal += "<td style='padding: 4px;'></td>"
             else:
                 fecha_str = f"{now.year}-{now.month:02d}-{day:02d}"
                 is_delivery = fecha_str in fechas_pendientes
                 if is_delivery:
-                    html_cal += f"<td style='padding: 3px;'><span style='background-color: #28a745; color: white; padding: 2px 6px; border-radius: 50%; font-weight: bold;'>{day}</span></td>"
+                    html_cal += f"<td style='padding: 4px;'><span style='background-color: #1cc88a; color: white; padding: 3px 7px; border-radius: 50%; font-weight: bold; font-size: 11px;'>{day}</span></td>"
                 else:
-                    html_cal += f"<td style='padding: 3px; color: #333;'>{day}</td>"
+                    html_cal += f"<td style='padding: 4px; color: #5a5c69;'>{day}</td>"
         html_cal += "</tr>"
     html_cal += "</table></div>"
     st.markdown(html_cal, unsafe_allow_html=True)
@@ -135,7 +196,6 @@ with st.sidebar:
         
         if btn_registrar and nombre and cedula:
             fecha_compra = datetime.now()
-            # Calcular fecha de entrega sumando solo días hábiles
             fecha_entrega = sumar_dias_habiles(fecha_compra, int(dias_espera))
             
             nuevo_id = int(st.session_state.pedidos["ID"].max() + 1) if not st.session_state.pedidos.empty else 1
@@ -165,7 +225,7 @@ for index, row in st.session_state.pedidos.iterrows():
             st.session_state.pedidos.at[index, "Estado"] = "Pasados de Fecha"
             enviar_alerta("Pedido Retrasado", f"El pedido de {row['Nombre']} {row['Apellido']} está pasado de la fecha de entrega.")
 
-# Listado de pedidos organizados en 3 columnas principales
+# Listado de pedidos organizados en 3 columnas principales con tarjetas mejoradas
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -176,10 +236,75 @@ with col1:
     for idx, row in pendientes.iterrows():
         st.markdown(
             f"""
-            <div style="background-color: #f8f9fa; padding: 12px; border-radius: 8px 8px 0 0; border-left: 5px solid #ffa500; border-top: 1px solid #e0e0e0; border-right: 1px solid #e0e0e0;">
-                <strong>{row['Nombre']} {row['Apellido']}</strong><br>
-                <small style="color: #666;">Cédula: {row['Cédula']}</small>
+            <div class="card-pendientes">
+                <span style="font-size: 15px; font-weight: bold; color: #3a3b45;">{row['Nombre']} {row['Apellido']}</span><br>
+                <span style="font-size: 12px; color: #858796;">🆔 Cédula: {row['Cédula']}</span>
             </div>
             """, unsafe_allow_html=True
         )
         with st.expander("📌 Ver Detalles y Acciones"):
+            st.markdown(f"<div style='background-color: #fdf3dc; padding: 8px; border-radius: 6px; text-align: center; font-weight: bold; color: #b78103; font-size: 13px;'>📅 Entrega Est: {row['Fecha Entrega Estimada']}</div>", unsafe_allow_html=True)
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("✅ Entregar", key=f"ent_{row['ID']}"):
+                    st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
+                    st.rerun()
+            with c2:
+                if st.button("🗑️ Borrar", key=f"del_{row['ID']}"):
+                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
+                    st.rerun()
+
+with col2:
+    st.markdown("### ⚠️ Pasados de Fecha")
+    atrasados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pasados de Fecha"]
+    if atrasados.empty:
+        st.info("No hay pedidos atrasados.")
+    for idx, row in atrasados.iterrows():
+        st.markdown(
+            f"""
+            <div class="card-atrasados">
+                <span style="font-size: 15px; font-weight: bold; color: #3a3b45;">{row['Nombre']} {row['Apellido']}</span><br>
+                <span style="font-size: 12px; color: #858796;">🆔 Cédula: {row['Cédula']}</span>
+            </div>
+            """, unsafe_allow_html=True
+        )
+        with st.expander("📌 Ver Detalles y Acciones", expanded=True):
+            st.markdown(f"<div style='background-color: #fce8e6; padding: 8px; border-radius: 6px; text-align: center; font-weight: bold; color: #c5221f; font-size: 13px;'>📅 Vencido Est: {row['Fecha Entrega Estimada']}</div>", unsafe_allow_html=True)
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("✅ Entregar", key=f"ent_atrasado_{row['ID']}"):
+                    st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
+                    st.rerun()
+            with c2:
+                if st.button("🗑️ Borrar", key=f"del_atrasado_{row['ID']}"):
+                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
+                    st.rerun()
+
+with col3:
+    st.markdown("### ✅ Entregados")
+    entregados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Entregados"]
+    if entregados.empty:
+        st.info("No hay pedidos entregados.")
+    for idx, row in entregados.iterrows():
+        st.markdown(
+            f"""
+            <div class="card-entregados">
+                <span style="font-size: 15px; font-weight: bold; color: #3a3b45;">{row['Nombre']} {row['Apellido']}</span><br>
+                <span style="font-size: 12px; color: #858796;">🆔 Cédula: {row['Cédula']}</span>
+            </div>
+            """, unsafe_allow_html=True
+        )
+        with st.expander("📌 Ver Detalles y Acciones"):
+            st.markdown(f"<div style='background-color: #e6f4ea; padding: 8px; border-radius: 6px; text-align: center; font-weight: bold; color: #137333; font-size: 13px;'>📅 Entregado el: {row['Fecha Entrega Estimada']}</div>", unsafe_allow_html=True)
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            if st.button("🗑️ Borrar", key=f"del_entregado_{row['ID']}"):
+                st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
+                st.rerun()
