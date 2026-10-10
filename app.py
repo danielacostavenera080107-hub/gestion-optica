@@ -108,7 +108,7 @@ def sumar_dias_habiles(fecha_inicio, dias_a_sumar):
             agregados += 1
     return actual
 
-# Inicialización de estado con datos por defecto únicamente para el mes actual real
+# Inicialización de estado con datos de ejemplo para el mes actual
 if 'pedidos' not in st.session_state:
     mes_actual_default = datetime.now().strftime("%Y-%m")
     p1 = {
@@ -183,20 +183,20 @@ col_title, col_cal = st.columns([1.6, 1.4], gap="large")
 
 with col_title:
     st.markdown("<h1 style='color: #ffffff; font-size: 30px; font-weight: 800; margin-bottom: 0px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);'>Órdenes de Lentes 👓</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p style='color: #e2e8f0; font-size: 14px; margin-top: 4px; margin-bottom: 24px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);'>Viendo registros correspondientes al periodo: <b>{calendar.month_name[c_m]} {c_y}</b></p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color: #e2e8f0; font-size: 14px; margin-top: 4px; margin-bottom: 24px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);'>Viendo registros independientes del periodo: <b>{calendar.month_name[c_m]} {c_y}</b></p>", unsafe_allow_html=True)
     
     df_p = st.session_state.pedidos
     
-    # Filtrar estrictamente los pedidos que pertenecen al mes seleccionado en la interfaz
+    # Filtrar estrictamente los pedidos del mes activo
     df_mes = df_p[df_p["Mes Periodo"] == periodo_actual_str] if "Mes Periodo" in df_p.columns else pd.DataFrame(columns=df_p.columns)
     
-    total_pendientes = len(df_mes[df_mes["Estado"] == "Pendiente por Entregar"])
-    total_atrasados = len(df_mes[df_mes["Estado"] == "Pasados de Fecha"])
-    total_entregados = len(df_mes[df_mes["Estado"] == "Entregados"])
-    total_garantias = len(df_mes[df_mes["Estado"] == "En Garantía"])
-    total_vendidos_mes = total_entregados  # Solo cuenta los entregados en este mes exacto
+    total_pendientes = len(df_mes[df_mes["Estado"] == "Pendiente por Entregar"]) if not df_mes.empty else 0
+    total_atrasados = len(df_mes[df_mes["Estado"] == "Pasados de Fecha"]) if not df_mes.empty else 0
+    total_entregados = len(df_mes[df_mes["Estado"] == "Entregados"]) if not df_mes.empty else 0
+    total_garantias = len(df_mes[df_mes["Estado"] == "En Garantía"]) if not df_mes.empty else 0
+    total_vendidos_mes = total_entregados  # Cuenta los entregados exclusivamente de este mes
     
-    # 5 Métricas KPIs Organizadas para el mes activo
+    # 5 Métricas KPIs Organizadas
     kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
     with kpi1:
         st.markdown(f'<div class="metric-container"><span style="color: #f59e0b; font-size: 20px; font-weight: 800;">{total_pendientes}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">PENDIENTES</span></div>', unsafe_allow_html=True)
@@ -220,5 +220,4 @@ with col_cal:
                 st.session_state.cal_month -= 1
             st.rerun()
     with c_sig:
-        if st.button("Mes Siguiente ▶", use_container_width=True, key="next_month"):
-            if st
+        if st.button("Mes Siguiente ▶",
