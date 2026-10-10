@@ -266,4 +266,17 @@ with col2:
                     st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
                     st.rerun()
 
-with col3
+with col3:
+    st.markdown("### ✅ Entregados")
+    entregados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Entregados"]
+    if entregados.empty:
+        st.info("No hay pedidos entregados.")
+    for idx, row in entregados.iterrows():
+        with st.expander(f"📦 {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
+            st.success(f"📅 **Entregado el:** {row['Fecha Entrega Estimada']}")
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            if st.button("🗑️ Borrar", key=f"del_entregado_{row['ID']}", use_container_width=True):
+                st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
+                st.rerun()
