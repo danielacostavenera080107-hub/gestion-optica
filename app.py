@@ -7,10 +7,10 @@ import calendar
 # Configuración de la página
 st.set_page_config(layout="wide", page_title="Sistema de Gestión — Óptica")
 
-# Estilos CSS avanzados: Modernizando por completo componentes y tarjetas
+# Estilos CSS avanzados para un diseño moderno, limpio y profesional
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Plus Jakarta Sans', sans-serif;
@@ -20,13 +20,12 @@ st.markdown("""
         background-color: #f8fafc;
     }
 
-    /* Ocultar elementos predeterminados */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
 
     /* Barra superior moderna */
     .hero-banner {
-        background: linear-gradient(135deg, #0f172a 1e293b 100%);
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         padding: 20px 30px;
         border-radius: 16px;
         color: white;
@@ -37,7 +36,7 @@ st.markdown("""
         margin-bottom: 25px;
     }
 
-    /* KPIs ejecutivos flotantes */
+    /* Tarjetas de Métricas (KPIs) */
     .metric-container {
         background: #ffffff;
         padding: 20px;
@@ -45,20 +44,20 @@ st.markdown("""
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
         border: 1px solid #f1f5f9;
         text-align: center;
-        transition: all 0.3s ease;
+        transition: transform 0.3s ease;
     }
     .metric-container:hover {
         transform: translateY(-3px);
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
     }
 
-    /* Tarjetas de estado con diseño limpio y moderno */
+    /* Tarjetas de Pedidos Individuales */
     .card-base {
         background: #ffffff;
-        padding: 18px;
+        padding: 16px;
         border-radius: 14px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        margin-bottom: 15px;
+        margin-bottom: 12px;
         border: 1px solid #e2e8f0;
         transition: all 0.2s ease;
     }
@@ -185,115 +184,4 @@ with col_cal:
         <div style="font-weight: 700; text-align: center; margin-bottom: 12px; color: #0f172a; font-size: 15px;">📅 Calendario Activo — {month_name}</div>
         <table style="width: 100%; text-align: center; border-collapse: collapse;">
             <tr style="color: #94a3b8; font-size: 11px; font-weight: 700;">
-                <th style="padding-bottom: 8px;">Lu</th><th style="padding-bottom: 8px;">Ma</th><th style="padding-bottom: 8px;">Mi</th><th style="padding-bottom: 8px;">Ju</th><th style="padding-bottom: 8px;">Vi</th><th style="padding-bottom: 8px;">Sá</th><th style="padding-bottom: 8px;">Do</th>
-            </tr>
-    """
-    for week in cal:
-        html_cal += "<tr>"
-        for day in week:
-            if day == 0:
-                html_cal += "<td style='padding: 6px;'></td>"
-            else:
-                fecha_str = f"{now.year}-{now.month:02d}-{day:02d}"
-                is_delivery = fecha_str in fechas_pendientes
-                if is_delivery:
-                    html_cal += f"<td style='padding: 6px;'><span style='background-color: #10b981; color: white; padding: 5px 9px; border-radius: 50%; font-weight: 700; font-size: 12px; box-shadow: 0 2px 4px rgba(16,185,129,0.3);'>{day}</span></td>"
-                else:
-                    html_cal += f"<td style='padding: 6px; color: #475569; font-weight: 500; font-size: 13px;'>{day}</td>"
-        html_cal += "</tr>"
-    html_cal += "</table></div>"
-    st.markdown(html_cal, unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# Barra lateral estilizada para registro
-with st.sidebar:
-    st.markdown("<h2 style='font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 15px;'>📝 Registrar Nuevo Pedido</h2>", unsafe_allow_html=True)
-    with st.form("nuevo_pedido", clear_on_submit=True):
-        nombre = st.text_input("Nombre")
-        apellido = st.text_input("Apellido")
-        cedula = st.text_input("Número de Cédula")
-        asesora = st.text_input("Asesora Responsable")
-        dias_espera = st.number_input("Plazo de Entrega (Días Hábiles)", min_value=1, value=5)
-        
-        btn_registrar = st.form_submit_button("Registrar Pedido", use_container_width=True)
-        
-        if btn_registrar and nombre and cedula:
-            fecha_compra = datetime.now()
-            fecha_entrega = sumar_dias_habiles(fecha_compra, int(dias_espera))
-            
-            nuevo_id = int(st.session_state.pedidos["ID"].max() + 1) if not st.session_state.pedidos.empty else 1
-            nuevo_pedido = pd.DataFrame([{
-                "ID": nuevo_id,
-                "Nombre": nombre,
-                "Apellido": apellido,
-                "Cédula": cedula,
-                "Asesora": asesora if asesora else "No asignada",
-                "Fecha Compra": fecha_compra.strftime("%Y-%m-%d"),
-                "Fecha Entrega Estimada": fecha_entrega.strftime("%Y-%m-%d"),
-                "Estado": "Pendiente por Entregar"
-            }])
-            
-            st.session_state.pedidos = pd.concat([st.session_state.pedidos, nuevo_pedido], ignore_index=True)
-            enviar_alerta("Pedido Registrado", f"Pedido para {nombre} {apellido} registrado con éxito.")
-            st.rerun()
-
-# Verificación automática de estados
-hoy_str = datetime.now().strftime("%Y-%m-%d")
-
-for index, row in st.session_state.pedidos.iterrows():
-    if row["Estado"] == "Pendiente por Entregar":
-        fecha_entrega = datetime.strptime(row["Fecha Entrega Estimada"], "%Y-%m-%d")
-        fecha_actual = datetime.strptime(hoy_str, "%Y-%m-%d")
-        if fecha_entrega < fecha_actual:
-            st.session_state.pedidos.at[index, "Estado"] = "Pasados de Fecha"
-            enviar_alerta("Pedido Retrasado", f"El pedido de {row['Nombre']} {row['Apellido']} está pasado de la fecha de entrega.")
-
-# Listado de pedidos organizados en 3 columnas principales
-col1, col2, col3 = st.columns(3, gap="medium")
-
-with col1:
-    st.markdown("<h3 style='color: #d97706; font-size: 16px; font-weight: 700; margin-bottom: 16px;'>⏳ Pendientes por Entregar</h3>", unsafe_allow_html=True)
-    pendientes = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pendiente por Entregar"]
-    if pendientes.empty:
-        st.info("No hay pedidos pendientes.")
-    for idx, row in pendientes.iterrows():
-        st.markdown(
-            f"""
-            <div class="card-base border-pendientes">
-                <div style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 2px;">{row['Nombre']} {row['Apellido']}</div>
-                <div style="font-size: 12px; color: #64748b; font-weight: 500;">🆔 Cédula: {row['Cédula']}</div>
-            </div>
-            """, unsafe_allow_html=True
-        )
-        with st.expander("📌 Ver Detalles y Acciones"):
-            st.markdown(f"<div style='background-color: #fef3c7; padding: 8px; border-radius: 8px; text-align: center; font-weight: 700; color: #b45309; font-size: 12px; margin-bottom: 10px;'>📅 Entrega Est: {row['Fecha Entrega Estimada']}</div>", unsafe_allow_html=True)
-            st.write(f"👤 **Asesora:** {row['Asesora']}")
-            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
-            
-            c_btn1, c_btn2 = st.columns(2)
-            with c_btn1:
-                if st.button("✅ Entregar", key=f"ent_{row['ID']}", use_container_width=True):
-                    st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
-                    st.rerun()
-            with c_btn2:
-                if st.button("🗑️ Borrar", key=f"del_{row['ID']}", use_container_width=True):
-                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
-                    st.rerun()
-
-with col2:
-    st.markdown("<h3 style='color: #dc2626; font-size: 16px; font-weight: 700; margin-bottom: 16px;'>⚠️ Pasados de Fecha</h3>", unsafe_allow_html=True)
-    atrasados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pasados de Fecha"]
-    if atrasados.empty:
-        st.info("No hay pedidos atrasados.")
-    for idx, row in atrasados.iterrows():
-        st.markdown(
-            f"""
-            <div class="card-base border-atrasados">
-                <div style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 2px;">{row['Nombre']} {row['Apellido']}</div>
-                <div style="font-size: 12px; color: #64748b; font-weight: 500;">🆔 Cédula: {row['Cédula']}</div>
-            </div>
-            """, unsafe_allow_html=True
-        )
-        with st.expander("📌 Ver Detalles y Acciones", expanded=True):
-            st.markdown(f"<div style='background-color: #fee2e2; padding: 8px; border-radius: 8px; text-align: center; font-weight: 700; color: #b
+                <th
