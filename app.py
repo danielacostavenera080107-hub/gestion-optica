@@ -6,11 +6,39 @@ from plyer import notification
 # Configuración de la página
 st.set_page_config(layout="wide", page_title="Gestión de Óptica")
 
-# Inicialización de estado para la base de datos
+# Inicialización de estado con datos de ejemplo actualizados
 if 'pedidos' not in st.session_state:
-    st.session_state.pedidos = pd.DataFrame(columns=[
-        "ID", "Nombre", "Apellido", "Cédula", 
-        "Fecha Compra", "Fecha Entrega Estimada", "Estado"
+    st.session_state.pedidos = pd.DataFrame([
+        {
+            "ID": 1,
+            "Nombre": "Carlos",
+            "Apellido": "Pérez",
+            "Cédula": "12345678",
+            "Asesora": "Laura Gómez",
+            "Fecha Compra": (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d"),
+            "Fecha Entrega Estimada": (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d"),
+            "Estado": "Pendiente por Entregar"
+        },
+        {
+            "ID": 2,
+            "Nombre": "María",
+            "Apellido": "Gómez",
+            "Cédula": "87654321",
+            "Asesora": "Andrea Ruiz",
+            "Fecha Compra": (datetime.now() - timedelta(days=6)).strftime("%Y-%m-%d"),
+            "Fecha Entrega Estimada": (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d"),
+            "Estado": "Pasados de Fecha"
+        },
+        {
+            "ID": 3,
+            "Nombre": "Ana",
+            "Apellido": "Rodríguez",
+            "Cédula": "11223344",
+            "Asesora": "Laura Gómez",
+            "Fecha Compra": (datetime.now() - timedelta(days=10)).strftime("%Y-%m-%d"),
+            "Fecha Entrega Estimada": (datetime.now() - timedelta(days=5)).strftime("%Y-%m-%d"),
+            "Estado": "Entregados"
+        }
     ])
 
 # Título de la aplicación
@@ -26,7 +54,6 @@ def enviar_alerta(titulo, mensaje):
             timeout=10
         )
     except Exception:
-        # En entornos cloud o si no hay soporte de escritorio nativo, evitamos que falle la app
         pass
 
 # Barra lateral para ingreso de nuevos pedidos
@@ -36,6 +63,7 @@ with st.sidebar:
         nombre = st.text_input("Nombre")
         apellido = st.text_input("Apellido")
         cedula = st.text_input("Número de Cédula")
+        asesora = st.text_input("Asesora Responsable")
         dias_espera = st.number_input("Plazo de Entrega (Días)", min_value=1, value=5)
         
         btn_registrar = st.form_submit_button("Registrar Pedido")
@@ -44,12 +72,13 @@ with st.sidebar:
             fecha_compra = datetime.now()
             fecha_entrega = fecha_compra + timedelta(days=int(dias_espera))
             
-            nuevo_id = len(st.session_state.pedidos) + 1
+            nuevo_id = int(st.session_state.pedidos["ID"].max() + 1) if not st.session_state.pedidos.empty else 1
             nuevo_pedido = pd.DataFrame([{
                 "ID": nuevo_id,
                 "Nombre": nombre,
                 "Apellido": apellido,
                 "Cédula": cedula,
+                "Asesora": asesora if asesora else "No asignada",
                 "Fecha Compra": fecha_compra.strftime("%Y-%m-%d"),
                 "Fecha Entrega Estimada": fecha_entrega.strftime("%Y-%m-%d"),
                 "Estado": "Pendiente por Entregar"
@@ -75,9 +104,13 @@ col1, col2, col3 = st.columns(3)
 with col1:
     st.subheader("Pendientes por Entregar")
     pendientes = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pendiente por Entregar"]
+    if pendientes.empty:
+        st.info("No hay pedidos pendientes.")
     for idx, row in pendientes.iterrows():
         with st.expander(f"{row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
-            st.write(f"Fecha Entrega Est.: {row['Fecha Entrega Estimada']}")
+            st.write(f"📅 **Entrega Estimada:** `{row['Fecha Entrega Estimada']}`")
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Fecha Compra:** {row['Fecha Compra']}")
             if st.button("Marcar como Entregado", key=f"entregado_{row['ID']}"):
                 st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
                 st.rerun()
@@ -85,9 +118,13 @@ with col1:
 with col2:
     st.subheader("Pasados de Fecha")
     atrasados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pasados de Fecha"]
+    if atrasados.empty:
+        st.info("No hay pedidos atrasados.")
     for idx, row in atrasados.iterrows():
         with st.expander(f"{row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})", expanded=True):
-            st.write(f"Fecha Entrega Est.: {row['Fecha Entrega Estimada']}")
+            st.write(f"📅 **Entrega Estimada:** `{row['Fecha Entrega Estimada']}`")
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Fecha Compra:** {row['Fecha Compra']}")
             if st.button("Marcar como Entregado", key=f"entregado_atrasado_{row['ID']}"):
                 st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
                 st.rerun()
@@ -95,7 +132,10 @@ with col2:
 with col3:
     st.subheader("Entregados")
     entregados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Entregados"]
+    if entregados.empty:
+        st.info("No hay pedidos entregados.")
     for _, row in entregados.iterrows():
         with st.expander(f"{row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
-            st.write(f"Fecha Compra: {row['Fecha Compra']}")
-            st.write(f"Fecha Entrega Estimada: {row['Fecha Entrega Estimada']}")
+            st.write(f"📅 **Entrega Estimada:** `{row['Fecha Entrega Estimada']}`")
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Fecha Compra:** {row['Fecha Compra']}")
