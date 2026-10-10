@@ -59,6 +59,24 @@ def enviar_alerta(titulo, mensaje):
     except Exception:
         pass
 
+# --- BARRA SUPERIOR CON FECHA Y HORA EN TIEMPO REAL ---
+dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+meses_es = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+
+ahora = datetime.now()
+dia_sem_str = dias_semana[ahora.weekday()]
+mes_str = meses_es[ahora.month]
+fecha_hora_formateada = f"{dia_sem_str}, {ahora.day} de {mes_str} de {ahora.year} — {ahora.strftime('%I:%M:%S %p')}"
+
+st.markdown(
+    f"""
+    <div style="background-color: #eef2f7; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; font-family: sans-serif;">
+        <span style="font-weight: bold; color: #2c3e50; font-size: 14px;">🕒 Fecha y Hora Actual:</span>
+        <span style="color: #34495e; font-size: 14px; font-weight: 500;">{fecha_hora_formateada}</span>
+    </div>
+    """, unsafe_allow_html=True
+)
+
 # Encabezado superior dividido: Título a la izquierda, Calendario elegante a la derecha
 col_title, col_cal = st.columns([1.8, 1.2])
 
@@ -69,7 +87,6 @@ with col_title:
 with col_cal:
     now = datetime.now()
     cal = calendar.monthcalendar(now.year, now.month)
-    meses_es = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     month_name = meses_es[now.month]
     
     # Extraer fechas con entregas pendientes o atrasadas
@@ -166,68 +183,4 @@ with col1:
             """, unsafe_allow_html=True
         )
         with st.expander("📌 Ver Detalles y Acciones"):
-            st.markdown(f"<div style='background-color: #fff3cd; padding: 8px; border-radius: 6px; text-align: center; font-weight: bold; color: #856404;'>📅 Entrega Estimada: {row['Fecha Entrega Estimada']}</div>", unsafe_allow_html=True)
-            st.write(f"👤 **Asesora:** {row['Asesora']}")
-            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
-            
-            c1, c2 = st.columns(2)
-            with c1:
-                if st.button("✅ Entregar", key=f"ent_{row['ID']}"):
-                    st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
-                    st.rerun()
-            with c2:
-                if st.button("🗑️ Borrar", key=f"del_{row['ID']}"):
-                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
-                    st.rerun()
-
-with col2:
-    st.markdown("### ⚠️ Pasados de Fecha")
-    atrasados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pasados de Fecha"]
-    if atrasados.empty:
-        st.info("No hay pedidos atrasados.")
-    for idx, row in atrasados.iterrows():
-        st.markdown(
-            f"""
-            <div style="background-color: #fdf2f2; padding: 12px; border-radius: 8px 8px 0 0; border-left: 5px solid #ff4d4d; border-top: 1px solid #e0e0e0; border-right: 1px solid #e0e0e0;">
-                <strong>{row['Nombre']} {row['Apellido']}</strong><br>
-                <small style="color: #666;">Cédula: {row['Cédula']}</small>
-            </div>
-            """, unsafe_allow_html=True
-        )
-        with st.expander("📌 Ver Detalles y Acciones", expanded=True):
-            st.markdown(f"<div style='background-color: #f8d7da; padding: 8px; border-radius: 6px; text-align: center; font-weight: bold; color: #721c24;'>📅 Vencido Est: {row['Fecha Entrega Estimada']}</div>", unsafe_allow_html=True)
-            st.write(f"👤 **Asesora:** {row['Asesora']}")
-            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
-            
-            c1, c2 = st.columns(2)
-            with c1:
-                if st.button("✅ Entregar", key=f"ent_atrasado_{row['ID']}"):
-                    st.session_state.pedidos.at[idx, "Estado"] = "Entregados"
-                    st.rerun()
-            with c2:
-                if st.button("🗑️ Borrar", key=f"del_atrasado_{row['ID']}"):
-                    st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
-                    st.rerun()
-
-with col3:
-    st.markdown("### ✅ Entregados")
-    entregados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Entregados"]
-    if entregados.empty:
-        st.info("No hay pedidos entregados.")
-    for idx, row in entregados.iterrows():
-        st.markdown(
-            f"""
-            <div style="background-color: #f2f9f2; padding: 12px; border-radius: 8px 8px 0 0; border-left: 5px solid #28a745; border-top: 1px solid #e0e0e0; border-right: 1px solid #e0e0e0;">
-                <strong>{row['Nombre']} {row['Apellido']}</strong><br>
-                <small style="color: #666;">Cédula: {row['Cédula']}</small>
-            </div>
-            """, unsafe_allow_html=True
-        )
-        with st.expander("📌 Ver Detalles y Acciones"):
-            st.markdown(f"<div style='background-color: #d4edda; padding: 8px; border-radius: 6px; text-align: center; font-weight: bold; color: #155724;'>📅 Entregado el: {row['Fecha Entrega Estimada']}</div>", unsafe_allow_html=True)
-            st.write(f"👤 **Asesora:** {row['Asesora']}")
-            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
-            
-            if st.button("🗑️ Borrar", key=f"del_entregado_{row['ID']}"):
-                st.session_state.pedidos = st.session_state.pedidos.drop(idx).reset_index(drop=True)
-                st.rerun()
+            st.
