@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from plyer import notification
 import calendar
+import streamlit.components.v1 as components
 
 # Configuración de la página
 st.set_page_config(layout="wide", page_title="Sistema de Gestión — Óptica")
@@ -81,19 +82,41 @@ def enviar_alerta(titulo, mensaje):
     except Exception:
         pass
 
-# --- BARRA SUPERIOR CON FECHA Y HORA ---
-dias_semana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-meses_es = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+# --- BARRA SUPERIOR CON RELOJ EN TIEMPO REAL (SEGUNDO A SEGUNDO) ---
+reloj_html = """
+<div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 20px 30px; border-radius: 16px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15); margin-bottom: 25px; font-family: 'Plus Jakarta Sans', sans-serif;">
+    <div><span style="font-weight: 700; font-size: 16px;">⚡ Panel Ejecutivo de Control Óptico</span></div>
+    <div id="reloj-vivo" style="font-size: 13px; font-weight: 500; background: rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px;">🕒 Cargando reloj...</div>
+</div>
 
-ahora = datetime.now()
-dia_sem_str = dias_semana[ahora.weekday()]
-mes_str = meses_es[ahora.month]
-fecha_hora_formateada = f"{dia_sem_str}, {ahora.day} de {mes_str} de {ahora.year} — {ahora.strftime('%I:%M:%S %p')}"
-
-st.markdown(
-    f'<div class="hero-banner"><div><span style="font-weight: 700; font-size: 16px;">⚡ Panel Ejecutivo de Control Óptico</span></div><div style="font-size: 13px; font-weight: 500; background: rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px;">🕒 {fecha_hora_formateada}</div></div>',
-    unsafe_allow_html=True
-)
+<script>
+function actualizarReloj() {
+    const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const meses = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    
+    const now = new Date();
+    const diaSemana = dias[now.getDay()];
+    const diaMes = now.getDate();
+    const mes = meses[now.getMonth() + 1];
+    const anio = now.getFullYear();
+    
+    let horas = now.getHours();
+    const minutos = String(now.getMinutes()).padStart(2, '0');
+    const segundos = String(now.getSeconds()).padStart(2, '0');
+    const ampm = horas >= 12 ? 'PM' : 'AM';
+    
+    horas = horas % 12;
+    horas = horas ? horas : 12; // La hora '0' debe ser '12'
+    const horaStr = String(horas).padStart(2, '0');
+    
+    const formatoFinal = `🕒 ${diaSemana}, ${diaMes} de ${mes} de ${anio} — ${horaStr}:${minutos}:${segundos} ${ampm}`;
+    document.getElementById('reloj-vivo').innerText = formatoFinal;
+}
+setInterval(actualizarReloj, 1000);
+actualizarReloj();
+</script>
+"""
+components.html(reloj_html, height=90)
 
 # Encabezado Principal y Calendario Elegante Superior Derecho
 col_title, col_cal = st.columns([1.6, 1.4], gap="large")
@@ -118,6 +141,7 @@ with col_title:
 with col_cal:
     now = datetime.now()
     cal = calendar.monthcalendar(now.year, now.month)
+    meses_es = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
     month_name = meses_es[now.month]
     
     filtro_fechas = df_p["Estado"].isin(["Pendiente por Entregar", "Pasados de Fecha"])
