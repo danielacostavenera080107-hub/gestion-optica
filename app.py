@@ -8,7 +8,7 @@ import streamlit.components.v1 as components
 # Configuración de la página
 st.set_page_config(layout="wide", page_title="Sistema de Gestión — LENS VISION")
 
-# Estilos CSS avanzados con fondo de imagen forzado a pantalla completa
+# Estilos CSS avanzados con contraste optimizado para el fondo oscuro
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -17,7 +17,7 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif; 
     }
     
-    /* Forzar fondo de imagen interactivo en todo el contenedor de Streamlit */
+    /* Fondo de pantalla completa */
     .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
         background: linear-gradient(rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.92)), 
                     url('https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1920&q=80') !important;
@@ -52,6 +52,14 @@ st.markdown("""
     [data-testid="stSidebar"] {
         background-color: rgba(255, 255, 255, 0.95) !important;
         border-right: 1px solid #e2e8f0;
+    }
+    
+    /* Corrección de opacidad: Forzar fondo sólido legible en los cuadros informativos (st.info) */
+    .stAlert {
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        color: #0f172a !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     </style>
 """, unsafe_allow_html=True)
@@ -140,8 +148,8 @@ components.html(reloj_html, height=90)
 col_title, col_cal = st.columns([1.6, 1.4], gap="large")
 
 with col_title:
-    st.markdown("<h1 style='color: #ffffff; font-size: 30px; font-weight: 800; margin-bottom: 0px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);'>Órdenes de Lentes 👓</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #cbd5e1; font-size: 14px; margin-top: 4px; margin-bottom: 24px; font-weight: 500;'>Supervisa eficientemente las entregas, plazos en días hábiles y el rendimiento del personal.</p>", unsafe_allow_html=True)
+    st.markdown("<h1 style='color: #ffffff; font-size: 30px; font-weight: 800; margin-bottom: 0px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);'>Órdenes de Lentes 👓</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #e2e8f0; font-size: 14px; margin-top: 4px; margin-bottom: 24px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5);'>Supervisa eficientemente las entregas, plazos en días hábiles y el rendimiento del personal.</p>", unsafe_allow_html=True)
     
     df_p = st.session_state.pedidos
     total_pendientes = len(df_p[df_p["Estado"] == "Pendiente por Entregar"])
@@ -157,10 +165,9 @@ with col_title:
         st.markdown(f'<div class="metric-container"><span style="color: #10b981; font-size: 24px; font-weight: 800;">{total_entregados}</span><br><span style="color: #64748b; font-size: 12px; font-weight: 600;">ENTREGADOS</span></div>', unsafe_allow_html=True)
 
 with col_cal:
-    # Controles para navegar entre meses
-    c_ant, c_lbl, c_sig = st.columns([1, 3, 1])
+    c_ant, c_sig = st.columns([1, 1])
     with c_ant:
-        if st.button("◀", use_container_width=True, key="prev_month"):
+        if st.button("◀ Mes Anterior", use_container_width=True, key="prev_month"):
             if st.session_state.cal_month == 1:
                 st.session_state.cal_month = 12
                 st.session_state.cal_year -= 1
@@ -168,7 +175,7 @@ with col_cal:
                 st.session_state.cal_month -= 1
             st.rerun()
     with c_sig:
-        if st.button("▶", use_container_width=True, key="next_month"):
+        if st.button("Mes Siguiente ▶", use_container_width=True, key="next_month"):
             if st.session_state.cal_month == 12:
                 st.session_state.cal_month = 1
                 st.session_state.cal_year += 1
@@ -259,11 +266,11 @@ for index, row in st.session_state.pedidos.iterrows():
             st.session_state.pedidos.at[index, "Estado"] = "Pasados de Fecha"
             enviar_alerta("Pedido Retrasado", f"El pedido de {row['Nombre']} {row['Apellido']} está pasado de la fecha de entrega.")
 
-# Listado de pedidos organizados en 3 columnas principales
+# Listado de pedidos organizados en 3 columnas principales con alta visibilidad
 col1, col2, col3 = st.columns(3, gap="medium")
 
 with col1:
-    st.markdown("<h3 style='color: #f59e0b; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.5);'>⏳ Pendientes por Entregar</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color: #f59e0b; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 12px; border-radius: 8px;'>⏳ Pendientes por Entregar</h3>", unsafe_allow_html=True)
     pendientes = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pendiente por Entregar"]
     if pendientes.empty:
         st.info("No hay pedidos pendientes.")
@@ -284,7 +291,7 @@ with col1:
                     st.rerun()
 
 with col2:
-    st.markdown("<h3 style='color: #ef4444; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.5);'>⚠️ Pasados de Fecha</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color: #ef4444; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 12px; border-radius: 8px;'>⚠️ Pasados de Fecha</h3>", unsafe_allow_html=True)
     atrasados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Pasados de Fecha"]
     if atrasados.empty:
         st.info("No hay pedidos atrasados.")
@@ -305,7 +312,7 @@ with col2:
                     st.rerun()
 
 with col3:
-    st.markdown("<h3 style='color: #10b981; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.5);'>✅ Entregados</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color: #10b981; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 12px; border-radius: 8px;'>✅ Entregados</h3>", unsafe_allow_html=True)
     entregados = st.session_state.pedidos[st.session_state.pedidos["Estado"] == "Entregados"]
     if entregados.empty:
         st.info("No hay pedidos entregados.")
