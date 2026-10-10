@@ -192,4 +192,222 @@ with col_title:
     
     total_pendientes = len(df_mes[df_mes["Estado"] == "Pendiente por Entregar"]) if not df_mes.empty else 0
     total_atrasados = len(df_mes[df_mes["Estado"] == "Pasados de Fecha"]) if not df_mes.empty else 0
-    total_entregados = len(
+    total_entregados = len(df_mes[df_mes["Estado"] == "Entregados"]) if not df_mes.empty else 0
+    total_garantias = len(df_mes[df_mes["Estado"] == "En Garantía"]) if not df_mes.empty else 0
+    total_vendidos_mes = total_entregados  # Cuenta los entregados exclusivamente de este mes
+    
+    # 5 Métricas KPIs Organizadas
+    kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
+    with kpi1:
+        st.markdown(f'<div class="metric-container"><span style="color: #f59e0b; font-size: 20px; font-weight: 800;">{total_pendientes}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">PENDIENTES</span></div>', unsafe_allow_html=True)
+    with kpi2:
+        st.markdown(f'<div class="metric-container"><span style="color: #ef4444; font-size: 20px; font-weight: 800;">{total_atrasados}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">ATRASADOS</span></div>', unsafe_allow_html=True)
+    with kpi3:
+        st.markdown(f'<div class="metric-container"><span style="color: #10b981; font-size: 20px; font-weight: 800;">{total_entregados}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">ENTREGADOS</span></div>', unsafe_allow_html=True)
+    with kpi4:
+        st.markdown(f'<div class="metric-container"><span style="color: #8b5cf6; font-size: 20px; font-weight: 800;">{total_garantias}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">GARANTÍAS</span></div>', unsafe_allow_html=True)
+    with kpi5:
+        st.markdown(f'<div class="metric-container"><span style="color: #0ea5e9; font-size: 20px; font-weight: 800;">{total_vendidos_mes}</span><br><span style="color: #64748b; font-size: 10px; font-weight: 700;">VENDIDOS (MES)</span></div>', unsafe_allow_html=True)
+
+with col_cal:
+    c_ant, c_sig = st.columns(2)
+    with c_ant:
+        if st.button("◀ Mes Anterior", use_container_width=True, key="prev_month"):
+            if st.session_state.cal_month == 1:
+                st.session_state.cal_month = 12
+                st.session_state.cal_year -= 1
+            else:
+                st.session_state.cal_month -= 1
+            st.rerun()
+    with c_sig:
+        if st.button("Mes Siguiente ▶", use_container_width=True, key="next_month"):
+            if st.session_state.cal_month == 12:
+                st.session_state.cal_month = 1
+                st.session_state.cal_year += 1
+            else:
+                st.session_state.cal_month += 1
+            st.rerun()
+
+    meses_es = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    month_name = meses_es[c_m]
+    
+    cal = calendar.monthcalendar(c_y, c_m)
+    filtro_fechas = df_mes["Estado"].isin(["Pendiente por Entregar", "Pasados de Fecha"]) if not df_mes.empty else []
+    fechas_pendientes = df_mes[filtro_fechas]["Fecha Entrega Estimada"].tolist() if not df_mes.empty else []
+    
+    html_cal = f'<div style="background-color: rgba(255, 255, 255, 0.95); padding: 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-family: sans-serif;"><div style="font-weight: 700; text-align: center; margin-bottom: 12px; color: #0f172a; font-size: 15px;">📅 {month_name} {c_y}</div><table style="width: 100%; text-align: center; border-collapse: collapse;"><tr style="color: #94a3b8; font-size: 11px; font-weight: 700;"><th style="padding-bottom: 8px;">Lu</th><th style="padding-bottom: 8px;">Ma</th><th style="padding-bottom: 8px;">Mi</th><th style="padding-bottom: 8px;">Ju</th><th style="padding-bottom: 8px;">Vi</th><th style="padding-bottom: 8px;">Sá</th><th style="padding-bottom: 8px;">Do</th></tr>'
+    
+    for week in cal:
+        html_cal += "<tr>"
+        for day in week:
+            if day == 0:
+                html_cal += "<td style='padding: 5px;'></td>"
+            else:
+                fecha_str = f"{c_y}-{c_m:02d}-{day:02d}"
+                is_delivery = fecha_str in fechas_pendientes
+                if is_delivery:
+                    html_cal += f"<td style='padding: 5px;'><span style='background-color: #10b981; color: white; padding: 4px 8px; border-radius: 50%; font-weight: 700; font-size: 12px;'>{day}</span></td>"
+                else:
+                    html_cal += f"<td style='padding: 5px; color: #475569; font-weight: 500; font-size: 13px;'>{day}</td>"
+        html_cal += "</tr>"
+    html_cal += "</table></div>"
+    st.markdown(html_cal, unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# Logotipo LENS VISION grande para la barra lateral
+logo_svg_grande = """
+<div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 22px 15px; border-radius: 16px; text-align: center; margin-bottom: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.15);">
+    <svg width="80" height="45" viewBox="0 0 100 60" style="margin-bottom: 8px;">
+        <circle cx="30" cy="30" r="20" fill="none" stroke="#38bdf8" stroke-width="6"/>
+        <circle cx="70" cy="30" r="20" fill="none" stroke="#38bdf8" stroke-width="6"/>
+        <line x1="50" y1="30" x2="50" y2="20" stroke="#38bdf8" stroke-width="6"/>
+        <circle cx="50" cy="30" r="4" fill="#10b981"/>
+    </svg>
+    <div style="color: white; font-weight: 800; font-size: 20px; letter-spacing: 1.5px; font-family: 'Plus Jakarta Sans', sans-serif;">LENS VISION</div>
+    <div style="color: #94a3b8; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin-top: 2px;">Optica & Gestión</div>
+</div>
+"""
+
+with st.sidebar:
+    st.markdown(logo_svg_grande, unsafe_allow_html=True)
+    
+    st.markdown(f"<p style='font-size: 12px; color: #64748b; font-weight: 700;'>Registrando en: <b>{month_name} {c_y}</b></p>", unsafe_allow_html=True)
+    st.markdown("<h2 style='font-size: 18px; font-weight: 700; color: #0f172a;'>📝 Registrar Nuevo Pedido</h2>", unsafe_allow_html=True)
+    with st.form("nuevo_pedido", clear_on_submit=True):
+        nombre = st.text_input("Nombre")
+        apellido = st.text_input("Apellido")
+        cedula = st.text_input("Número de Cédula")
+        asesora = st.text_input("Asesora Responsable")
+        dias_espera = st.number_input("Plazo de Entrega (Días Hábiles)", min_value=1, value=5)
+        
+        btn_registrar = st.form_submit_button("Registrar Pedido", use_container_width=True)
+        
+        if btn_registrar and nombre and cedula:
+            fecha_compra = datetime.now()
+            fecha_entrega = sumar_dias_habiles(fecha_compra, int(dias_espera))
+            
+            nuevo_id = int(st.session_state.pedidos["ID"].max() + 1) if not st.session_state.pedidos.empty else 1
+            nuevo_dict = {
+                "ID": nuevo_id, "Nombre": nombre, "Apellido": apellido, "Cédula": cedula,
+                "Asesora": asesora if asesora else "No asignada",
+                "Fecha Compra": fecha_compra.strftime("%Y-%m-%d"),
+                "Fecha Entrega Estimada": fecha_entrega.strftime("%Y-%m-%d"),
+                "Estado": "Pendiente por Entregar",
+                "Mes Periodo": periodo_actual_str  # Asignado estrictamente al mes seleccionado en pantalla
+            }
+            st.session_state.pedidos = pd.concat([st.session_state.pedidos, pd.DataFrame([nuevo_dict])], ignore_index=True)
+            enviar_alerta("Pedido Registrado", f"Pedido para {nombre} {apellido} registrado con éxito.")
+            st.rerun()
+
+# Verificación automática de estados para los pendientes del mes actual
+hoy_str = datetime.now().strftime("%Y-%m-%d")
+
+for index, row in st.session_state.pedidos.iterrows():
+    if row["Estado"] == "Pendiente por Entregar" and row["Mes Periodo"] == periodo_actual_str:
+        try:
+            fecha_entrega = datetime.strptime(row["Fecha Entrega Estimada"], "%Y-%m-%d")
+            fecha_actual = datetime.strptime(hoy_str, "%Y-%m-%d")
+            if fecha_entrega < fecha_actual:
+                st.session_state.pedidos.at[index, "Estado"] = "Pasados de Fecha"
+        except Exception:
+            pass
+
+# Listado de pedidos organizado en 4 columnas filtradas exclusivamente por el mes activo
+col1, col2, col3, col4 = st.columns(4, gap="medium")
+
+with col1:
+    st.markdown("<h3 style='color: #f59e0b; font-size: 16px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 10px; border-radius: 8px;'>⏳ Pendientes</h3>", unsafe_allow_html=True)
+    pendientes = df_mes[df_mes["Estado"] == "Pendiente por Entregar"] if not df_mes.empty else pd.DataFrame()
+    if pendientes.empty:
+        st.info("No hay pendientes.")
+    for idx, row in pendientes.iterrows():
+        real_idx = row.name
+        with st.expander(f"👓 {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
+            st.warning(f"📅 **Entrega Est:** {row['Fecha Entrega Estimada']}")
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            c_b1, c_b2, c_b3 = st.columns(3)
+            with c_b1:
+                if st.button("✅", key=f"ent_{row['ID']}", help="Entregar"):
+                    st.session_state.pedidos.at[real_idx, "Estado"] = "Entregados"
+                    st.rerun()
+            with c_b2:
+                if st.button("🛡️", key=f"gar_{row['ID']}", help="Enviar a Garantía"):
+                    st.session_state.pedidos.at[real_idx, "Estado"] = "En Garantía"
+                    st.rerun()
+            with c_b3:
+                if st.button("🗑️", key=f"del_{row['ID']}", help="Borrar"):
+                    st.session_state.pedidos = st.session_state.pedidos.drop(real_idx).reset_index(drop=True)
+                    st.rerun()
+
+with col2:
+    st.markdown("<h3 style='color: #ef4444; font-size: 16px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 10px; border-radius: 8px;'>⚠️ Atrasados</h3>", unsafe_allow_html=True)
+    atrasados = df_mes[df_mes["Estado"] == "Pasados de Fecha"] if not df_mes.empty else pd.DataFrame()
+    if atrasados.empty:
+        st.info("No hay atrasados.")
+    for idx, row in atrasados.iterrows():
+        real_idx = row.name
+        with st.expander(f"⚠️ {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
+            st.error(f"📅 **Vencido Est:** {row['Fecha Entrega Estimada']}")
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            c_b1, c_b2, c_b3 = st.columns(3)
+            with c_b1:
+                if st.button("✅", key=f"ent_at_{row['ID']}", help="Entregar"):
+                    st.session_state.pedidos.at[real_idx, "Estado"] = "Entregados"
+                    st.rerun()
+            with c_b2:
+                if st.button("🛡️", key=f"gar_at_{row['ID']}", help="Enviar a Garantía"):
+                    st.session_state.pedidos.at[real_idx, "Estado"] = "En Garantía"
+                    st.rerun()
+            with c_b3:
+                if st.button("🗑️", key=f"del_at_{row['ID']}", help="Borrar"):
+                    st.session_state.pedidos = st.session_state.pedidos.drop(real_idx).reset_index(drop=True)
+                    st.rerun()
+
+with col3:
+    st.markdown("<h3 style='color: #10b981; font-size: 16px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 10px; border-radius: 8px;'>✅ Entregados</h3>", unsafe_allow_html=True)
+    entregados = df_mes[df_mes["Estado"] == "Entregados"] if not df_mes.empty else pd.DataFrame()
+    if entregados.empty:
+        st.info("No hay entregados.")
+    for idx, row in entregados.iterrows():
+        real_idx = row.name
+        with st.expander(f"📦 {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
+            st.success(f"📅 **Entregado el:** {row['Fecha Entrega Estimada']}")
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            c_b1, c_b2 = st.columns(2)
+            with c_b1:
+                if st.button("🛡️", key=f"gar_ent_{row['ID']}", help="Enviar a Garantía", use_container_width=True):
+                    st.session_state.pedidos.at[real_idx, "Estado"] = "En Garantía"
+                    st.rerun()
+            with c_b2:
+                if st.button("🗑️", key=f"del_ent_{row['ID']}", help="Borrar", use_container_width=True):
+                    st.session_state.pedidos = st.session_state.pedidos.drop(real_idx).reset_index(drop=True)
+                    st.rerun()
+
+with col4:
+    st.markdown("<h3 style='color: #8b5cf6; font-size: 16px; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(15, 23, 42, 0.6); padding: 8px 10px; border-radius: 8px;'>🛡️ En Garantía</h3>", unsafe_allow_html=True)
+    garantias = df_mes[df_mes["Estado"] == "En Garantía"] if not df_mes.empty else pd.DataFrame()
+    if garantias.empty:
+        st.info("No hay garantías.")
+    for idx, row in garantias.iterrows():
+        real_idx = row.name
+        with st.expander(f"🛡️ {row['Nombre']} {row['Apellido']} (Cédula: {row['Cédula']})"):
+            st.markdown("<div style='background-color: #ede9fe; padding: 6px; border-radius: 6px; text-align: center; font-weight: 700; color: #6d28d9; font-size: 11px; margin-bottom: 8px;'>⚠️ En Proceso de Garantía</div>", unsafe_allow_html=True)
+            st.write(f"👤 **Asesora:** {row['Asesora']}")
+            st.write(f"🛒 **Compra:** {row['Fecha Compra']}")
+            
+            c_b1, c_b2 = st.columns(2)
+            with c_b1:
+                if st.button("✅", key=f"res_gar_{row['ID']}", help="Resolver / Entregar", use_container_width=True):
+                    st.session_state.pedidos.at[real_idx, "Estado"] = "Entregados"
+                    st.rerun()
+            with c_b2:
+                if st.button("🗑️", key=f"del_gar_{row['ID']}", help="Borrar", use_container_width=True):
+                    st.session_state.pedidos = st.session_state.pedidos.drop(real_idx).reset_index(drop=True)
+                    st.rerun()
